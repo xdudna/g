@@ -46,3 +46,64 @@ g s   # git status -s
 通过 `g help` 可以查看更多命令。
 
 Run `g help` to view more commands.
+
+```bash
+# version 0.1.7
+# output of `g help` for reference.
+
+> g help
+
+g is a small tool used to quickly execute git commands.
+
+Usage: g <command>
+
+If the command is in the following list, it will be executed directly.
+Otherwise, it will be passed to git as 'git <command>'.
+
+Normal commands:
+    add           a:          add
+                  aa, aA:     add -A
+    blame         bl:         blame
+    branch        b, br:      branch
+                  ba          branch --all
+                  B:          branch -m  (create a new branch and switch to it)
+                  ps:         branch --show-current
+    checkout      co:         checkout
+                  CO:         checkout -- .
+    cherry-pick   cp, pi:     cherry-pick
+    commit        cm:         commit
+                  am:         commit --amend  (if you want to run 'git am', use 'git am')
+    config        cfg, cfgl:  config --list
+                  cfge:       config --edit
+    diff          d, df:      diff
+    fetch         f, fe:      fetch
+    grep          g:          grep
+    help          hp:         help
+    log           l, l1:      (special format log)
+    merge         mr:         merge
+    pull          p:          pull
+    push          P:          push
+                  Pu:         push -u origin <branch_name>
+    rebase        rb:         rebase
+                  rbi:        rebase -i
+    remote        up:         remote (up: upstream)
+    reset         rs:         reset
+    show          sh, so:     show
+    status        s, st:      status --short
+                  S:          status
+    tag           t:          tag
+    switch        j:          switch  (j: jump)
+                  J, jj:      switch - (jump back to last branch)
+    version       ver:        version
+
+Dangerous commands:
+    CO      Reset all the changes in local repository. (git checkout -- .)
+    PP      Force push to remote repository (git push --force)
+    RR      Restore local to remote branch. (git reset --hard origin <branch_name>)
+
+More commands:
+    g version: Display version information about g.
+      (if you want to view git's version, use 'g ver')
+    g help:    Display help information about g.
+      (if you want to view git's help information, use 'g hp')
+```
