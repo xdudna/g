@@ -21,17 +21,12 @@ version="0.3.0"
 [ -z "$G_QUICK_BRANCH_1" ] && G_QUICK_BRANCH_1="main"   # quick branch 1
 [ -z "$G_QUICK_BRANCH_2" ] && G_QUICK_BRANCH_2="dev"    # quick branch 2
 [ -z "$G_QUICK_BRANCH_3" ] && G_QUICK_BRANCH_3="fat"    # quick branch 3
-# note: DON'T FORGET TO REWRITE THE 'showEnv' function if add new environment variables here.
 
 # Show environment variables
 function showEnv() {
-  echo "G_LOG_SIZE=$G_LOG_SIZE"
-  echo "G_PRINT_REAL_CMD=$G_PRINT_REAL_CMD"
-  echo "G_UPSTREAM=$G_UPSTREAM"
-  echo "G_VERBOSE_COMMIT=$G_VERBOSE_COMMIT"
-  echo "G_QUICK_BRANCH_1=$G_QUICK_BRANCH_1"
-  echo "G_QUICK_BRANCH_2=$G_QUICK_BRANCH_2"
-  echo "G_QUICK_BRANCH_3=$G_QUICK_BRANCH_3"
+  for var in $(compgen -v G_); do
+    echo "$var=${!var}"
+  done
 }
 
 # colors
@@ -131,7 +126,6 @@ For example: 'g j dev + s' is equivalent to 'git switch dev && git status'
 
 # Dangerous operation check
 function dangerCheck() {
-  #v=$(expr $RANDOM % 10)$(expr $RANDOM % 10)$(expr $RANDOM % 10)$(expr $RANDOM % 10)
   v=$(printf "%04d" $((RANDOM % 10000)))
   read -p  "To confirm, type [ $v ]: " input
   [[ $v != $input ]] && echo "cancelled..." && exit 1
@@ -143,100 +137,131 @@ function dangerCheck() {
 [ $# -eq 0 ] && showHelp && exit 0
 
 
+## Command maps (data-driven)
+# Commands that execute and exit immediately
+declare -A EXIT_CMD_MAP=(
+  [help]="showHelp" [--help]="showHelp"
+  [version]="showVersion" [--version]="showVersion"
+  [env]="showEnv"
+)
+
+# Normal commands -> git subcommands
+declare -A CMD_MAP=(
+  # add
+  [a]="add"
+  [aa]="add -A" [aA]="add -A"
+  # blame
+  [bl]="blame"
+  # branch
+  [b]="branch" [br]="branch"
+  [be]="branch --edit-description"
+  [bD]="branch -D"
+  [bv]="branch -v"
+  [bvv]="branch -vv"
+  [ba]="branch --all"
+  [B]="switch -c"
+  [ps]="branch --show-current 2> /dev/null"
+  # commit
+  [cm]="commit $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
+  [am]="commit --amend $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
+  # config
+  [cfg]="config --list" [cfgl]="config --list"
+  [cfge]="config --edit"
+  # diff
+  [d]="diff" [df]="diff"
+  # fetch
+  [f]="fetch" [fe]="fetch"
+  # grep
+  [g]="grep"
+  # checkout
+  [co]="checkout"
+  # cherry-pick
+  [cp]="cherry-pick" [pi]="cherry-pick"
+  # reset
+  [rs]="reset"
+  # restore
+  [x]="restore"
+  [xx]="restore --staged"
+  # merge
+  [mr]="merge"
+  # pull and push
+  [p]="pull"
+  [P]="push"
+  [Pu]="push -u $G_UPSTREAM $(git branch --show-current)"
+  [PU]="push -u $G_UPSTREAM $(git branch --show-current)"
+  # rebase
+  [rb]="rebase"
+  [rbi]="rebase -i"
+  # reflog
+  [rl]="reflog -$G_LOG_SIZE"
+  # remote
+  [up]="remote"
+  # status
+  [s]="status -s" [st]="status -s"
+  [S]="status"
+  # stash
+  [k]="stash"
+  # tag
+  [t]="tag"
+  # switch
+  [j]="switch"
+  [J]="switch -" [jj]="switch -"
+  # show
+  [sh]="show" [so]="show"
+  # log
+  [l]='log --color --pretty="%C(green)%ad%C(yellow) %h %C(blue)%<(10,trunc)%an %Creset%s %C(red) %d" --date=format:"%y-%m-%d %H:%M" -$G_LOG_SIZE'
+  [l1]="log --oneline -$G_LOG_SIZE"
+  [l2]="log --graph --oneline --decorate -$G_LOG_SIZE"
+  # help and version (git subcommands)
+  [hp]="help"
+  [ver]="version"
+)
+
+# Dangerous commands
+declare -A DANGEROUS_CMD_MAP=(
+  [CO]="checkout -- ."
+  [RR]="reset --hard $G_UPSTREAM/$(git branch --show-current)"
+  [PD]="push $G_UPSTREAM --delete"
+  [PP]="push --force"
+)
+
 # convert converts the command to git command.
 # if mismatch, it will return input.
 function convert() {
-  case $1 in
-    ## reserved commands
-    help | '--help' ) showHelp && exit 0 ;;
-    version | '--version' ) showVersion && exit 0;;
-    env )  showEnv && exit 0 ;;
+  local cmd="$1"
 
-    ## git commands
-    # add
-    a  )  top="add" ;;
-    aa | aA ) top="add -A" ;;
-    # blame
-    bl ) top="blame" ;;
-    # branch
-    b | br )  top="branch" ;;
-    be )  top="branch --edit-description" ;;
-    bD )  top="branch -D" ;;
-    bv )  top="branch -v" ;;
-    bvv ) top="branch -vv" ;;
-    ba )  top="branch --all" ;;
-    B )   top="switch -c" ;;
-    ps )  top="branch --show-current 2> /dev/null" ;;
-    # commit
-    cm )  top="commit $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')" ;;
-    am )  top="commit --amend $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')" ;;
-    # config
-    cfg | cfgl )  top="config --list" ;;
-    cfge )  top="config --edit" ;;
-    # diff
-    d | df ) top="diff" ;;
-    # fetch
-    f | fe) top="fetch" ;;
-    # grep
-    g ) top="grep" ;;
-    # checkout 
-    co ) top="checkout" ;;
-    CO ) dangerous=1 && top="checkout -- ." ;;
-    # cherry-pick
-    cp | pi ) top="cherry-pick" ;;
-    # reset 
-    rs ) top="reset";;
-    RR ) dangerous=1 && top="reset --hard $G_UPSTREAM/$(git branch --show-current)" ;;
-    # restore
-    x )  top="restore" ;;
-    xx ) top="restore --staged" ;;
-    # merge
-    mr ) top="merge" ;;
-    # pull and push
-    p  )  top="pull" ;;
-    P  )  top="push" ;;
-    Pu | PU )  top="push -u $G_UPSTREAM $(git branch --show-current)" ;;
-    PD )  dangerous=1 && top="push $G_UPSTREAM --delete" ;;
-    PP )  dangerous=1 && top="push --force";;
-    # rebase
-    rb  )  top="rebase" ;;
-    rbi )  top="rebase -i" ;;
-    # reflog
-    rl ) top="reflog -$G_LOG_SIZE" ;;
-    # remote
-    up ) top="remote" ;;
-    # status
-    s | st )  top="status -s" ;;
-    S )  top="status" ;;
-    # stash
-    k )  top="stash" ;;
-    # tag
-    t )  top="tag" ;;
-    # switch
-    j )  top="switch" ;;
-    J | jj )  top="switch -" ;;
-    # show
-    sh | so ) top="show" ;;
-    # log
-    l )  top='''log --color --pretty="%C(green)%ad%C(yellow) %h %C(blue)%<(10,trunc)%an %Creset%s %C(red) %d" --date=format:"%y-%m-%d %H:%M" -$G_LOG_SIZE''';;
-    l1 )  top='''log --oneline -$G_LOG_SIZE''' ;;
-    l2 )  top='''log --graph --oneline --decorate -$G_LOG_SIZE''' ;;
+  # Exit commands (help, version, env)
+  if [[ -n "${EXIT_CMD_MAP[$cmd]+x}" ]]; then
+    ${EXIT_CMD_MAP[$cmd]}
+    exit 0
+  fi
 
-    # help and version
-    hp )  top="help" ;;
-    ver ) top="version" ;;
+  # Normal commands
+  if [[ -n "${CMD_MAP[$cmd]+x}" ]]; then
+    top="${CMD_MAP[$cmd]}"
+    return
+  fi
 
-    # quick branch
-    1 ) [ -z "$G_QUICK_BRANCH_1" ] && echo "quick branch 1 is not set." && exit 1
-        top="switch $G_QUICK_BRANCH_1" ;;
-    2 ) [ -z "$G_QUICK_BRANCH_2" ] && echo "quick branch 2 is not set." && exit 1
-        top="switch $G_QUICK_BRANCH_2" ;;
-    3 ) [ -z "$G_QUICK_BRANCH_3" ] && echo "quick branch 3 is not set." && exit 1
-        top="switch $G_QUICK_BRANCH_3" ;;
-    
-    # mismatch
-    * ) top="$1" ;;
-  esac
+  # Dangerous commands
+  if [[ -n "${DANGEROUS_CMD_MAP[$cmd]+x}" ]]; then
+    dangerous=1
+    top="${DANGEROUS_CMD_MAP[$cmd]}"
+    return
+  fi
+
+  # Quick branch (1-9)
+  if [[ "$cmd" =~ ^[1-9]$ ]]; then
+    local var="G_QUICK_BRANCH_$cmd"
+    if [ -z "${!var}" ]; then
+      echo "quick branch $cmd is not set."
+      exit 1
+    fi
+    top="switch ${!var}"
+    return
+  fi
+
+  # Mismatch: pass through to git
+  top="$cmd"
 }
 
 first=true
