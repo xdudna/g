@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.3.0"
+version="0.3.1"
 
 ## What is g?
 # g is a magic tool that can help you quickly execute git commands.
@@ -46,6 +46,13 @@ dangerous=0
 # top is the short version of temporary operator.
 # it is used to store the converted command.
 top=""
+
+function showSimpleHelp() {
+  echo "usage: g <command> [<args>]
+
+run 'g help' for g's help.
+"
+}
 
 function showVersion() {
   echo "g version $version
@@ -134,7 +141,7 @@ function dangerCheck() {
 }
 
 # Core logic begins here
-[ $# -eq 0 ] && showHelp && exit 0
+[ $# -eq 0 ] && showSimpleHelp && exit 0
 
 
 ## Command maps (data-driven)
