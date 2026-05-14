@@ -296,7 +296,7 @@ for o in "${operators[@]}"; do
   [[ $curarg == *" "* ]] && curarg="\"$curarg\""
   realcmd="$realcmd $curarg"
 done
-[ "$G_PRINT_REAL_CMD" = true ] && echo -e "${Cgray}[g]\033[3m$realcmd\033[23m $Creset"
+[ "$G_PRINT_REAL_CMD" = true ] && echo -e "${Cgray}[g]\033[3m$realcmd\033[23m $Creset" >&2
 
 # Dangerous operation check
 [ $dangerous -eq 1 ] && echo -e "${Cyellow}hint: You are about to run '$realcmd'${Creset}" && ! dangerCheck && exit 1
