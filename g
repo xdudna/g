@@ -194,8 +194,8 @@ declare -A CMD_MAP=(
   # pull and push
   [p]="pull"
   [P]="push"
-  [Pu]="push -u $G_UPSTREAM $(git branch --show-current)"
-  [PU]="push -u $G_UPSTREAM $(git branch --show-current)"
+  [Pu]="push -u $G_UPSTREAM $(git branch --show-current 2> /dev/null)"
+  [PU]="push -u $G_UPSTREAM $(git branch --show-current 2> /dev/null)"
   # rebase
   [rb]="rebase"
   [rbi]="rebase -i"
@@ -227,7 +227,7 @@ declare -A CMD_MAP=(
 # Dangerous commands
 declare -A DANGEROUS_CMD_MAP=(
   [CO]="checkout -- ."
-  [RR]="reset --hard $G_UPSTREAM/$(git branch --show-current)"
+  [RR]="reset --hard $G_UPSTREAM/$(git branch --show-current 2> /dev/null)"
   [PD]="push $G_UPSTREAM --delete"
   [PP]="push --force"
 )
