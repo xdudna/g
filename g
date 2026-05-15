@@ -167,7 +167,7 @@ declare -A CMD_MAP=(
   [bvv]="branch -vv"
   [ba]="branch --all"
   [B]="switch -c"
-  [ps]="branch --show-current 2> /dev/null"
+  [ps]="branch --show-current"
   # commit
   [cm]="commit $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
   [am]="commit --amend $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
