@@ -1,0 +1,30 @@
+if ! declare -F _git >/dev/null; then
+    source /usr/share/bash-completion/completions/git 2>/dev/null || \
+    source /etc/bash_completion.d/git 2>/dev/null
+fi
+
+
+_g_complete() {
+    local cur prev words cword
+
+    _get_comp_words_by_ref -n : cur prev words cword
+
+    case ${prev} in
+        g )
+            if [[ -n ${cur} ]]; then
+                COMPREPLY=($(compgen -W "aa bl br be bD bv bvv ba ps cm am cfg cfgl cfge df fe co CO cp pi rs RR mr Pu PU PD PP rb rbi rl upst jj sh so l1 l2 hp ver env help version" -- "${cur}"))
+            else COMPREPLY=($(compgen -W "env help version"))
+            fi
+            ;;
+
+        a  ) __git_complete_index_file "--ignore-removal --refresh" "${cur}" ;;
+        aa ) COMPREPLY=() ;;
+        j ) __gitcomp_nl "$(__git_refs)" ;;
+        b | br ) COMPREPLY=() ;;
+
+        * ) : ;;
+
+    esac
+}
+
+complete -o bashdefault -o default -F _g_complete g 2>/dev/null || complete -F _g_complete g
