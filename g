@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.3.3"
+version="0.3.4"
 
 ## What is g?
 # g is a magic tool that can help you quickly execute git commands.
@@ -80,8 +80,8 @@ Normal commands:
                   ps:         branch --show-current
     checkout      co:         checkout
     cherry-pick   cp, pi:     cherry-pick
-    commit        cm:         commit
-                  am:         commit --amend  (if you want to run 'git am', use 'git am')
+    commit        m, cm:         commit
+                  M, am:         commit --amend  (if you want to run 'git am', use 'git am')
                   (set G_VERBOSE_COMMIT, --verbose will be added)
     config        cfg, cfgl:  config --list
                   cfge:       config --edit
@@ -171,6 +171,8 @@ declare -A CMD_MAP=(
   # commit
   [cm]="commit $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
   [am]="commit --amend $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
+  [m]="commit $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
+  [M]="commit --amend $([ $G_VERBOSE_COMMIT = "true" ] && echo '--verbose')"
   # config
   [cfg]="config --list" [cfgl]="config --list"
   [cfge]="config --edit"
