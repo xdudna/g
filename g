@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.3.4"
+version="0.3.5"
 
 ## What is g?
 # g is a magic tool that can help you quickly execute git commands.
