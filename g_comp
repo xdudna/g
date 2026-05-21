@@ -12,7 +12,7 @@ _g_complete() {
     case ${prev} in
         g )
             if [[ -n ${cur} ]]; then
-                COMPREPLY=($(compgen -W "aa bl br be bD bv bvv ba ps cm am cfg cfgl cfge df fe co CO cp pi rs RR mr Pu PU PD PP rb rbi rl upst jj sh so l1 l2 hp ver env help version" -- "${cur}"))
+                COMPREPLY=($(compgen -W "aa bl br be bD bv bvv ba ps cm am cfg cfgl cfge df fe co CO cp pi rs RR mr Pu PU PD PP rb rbi RB rl upst jj sh so l1 l2 hp ver env help version" -- "${cur}"))
             else COMPREPLY=($(compgen -W "env help version"))
             fi
             ;;

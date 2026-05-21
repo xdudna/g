@@ -96,6 +96,7 @@ Normal commands:
                   Pu, PU:     push -u <upstream> <branch_name>
     rebase        rb:         rebase
                   rbi:        rebase -i
+                  RB:         rebase <upstream>/<current_branch>
     reflog        rl:         reflog
     remote        up:         remote (up: upstream)
     reset         rs:         reset
@@ -199,6 +200,7 @@ declare -A CMD_MAP=(
   # rebase
   [rb]="rebase"
   [rbi]="rebase -i"
+  [RB]="rebase $G_UPSTREAM/$(git branch --show-current 2> /dev/null)"
   # reflog
   [rl]="reflog -$G_LOG_SIZE"
   # remote
